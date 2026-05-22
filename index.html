@@ -392,7 +392,7 @@ body {
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 20px;gap:24px;overflow-y:auto">
     <div class="lobby-title">
       <h1>ROYAL<br>CASINO</h1>
-      <div class="subtitle">— ESTABLISHED 2025 —</div>
+      <div class="subtitle">— ESTABLISHED 2026 —</div>
     </div>
     <div class="chip-display">
       <div class="chip-label">YOUR CHIPS</div>
@@ -606,6 +606,8 @@ body {
           <button class="preset-btn" onclick="setBet('dice',100)">100</button>
           <button class="preset-btn" onclick="setBet('dice',500)">500</button>
           <button class="preset-btn" onclick="setBet('dice',1000)">1K</button>
+          <button class="preset-btn" onclick="setBet('dice',10000)">10K</button>
+          <button class="preset-btn" onclick="setBet('dice',50000)">50K</button>
           <button class="preset-btn" onclick="setBetHalf('dice')">½</button>
           <button class="preset-btn" onclick="setBetAll('dice')">ALL</button>
         </div>
@@ -924,7 +926,7 @@ function bjHit() {
 }
 
 function bjStand() {
-  // 딜러: 16 이하면 계속 뽑기
+  // 딜러: 17 이하면 계속 뽑기
   bjInGame=false;
   renderBJ(); // 딜러 카드 공개
 
@@ -1125,9 +1127,9 @@ function showToast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// ── ⏰ 무료 충전 (30분마다 +200) ─────────────────────────
+// ── ⏰ 무료 충전 (30분마다 +20000) ─────────────────────────
 const REFILL_MS   = 30 * 60 * 1000;
-const REFILL_AMT  = 200;
+const REFILL_AMT  = 20000;
 
 function checkRefill() {
   const last   = STATE.lastRefill || 0;
@@ -1164,8 +1166,8 @@ function claimRefill() {
 // 1초마다 타이머 갱신
 setInterval(checkRefill, 1000);
 
-// ── 📅 출석 보너스 (하루 1회 +500) ───────────────────────
-const ATTEND_AMT = 500;
+// ── 📅 출석 보너스 (하루 1회 +50000) ───────────────────────
+const ATTEND_AMT = 50000;
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10); // "2025-06-01"
@@ -1198,8 +1200,8 @@ function claimAttendance() {
   showToast(`📅 출석 보너스 +${ATTEND_AMT} 칩!`);
 }
 
-// ── 🆘 파산 부활 (칩 ≤50, 하루 1회 +300) ─────────────────
-const EMERGENCY_AMT = 300;
+// ── 🆘 파산 부활 (칩 ≤500, 하루 1회 +30000) ─────────────────
+const EMERGENCY_AMT = 30000;
 
 function checkEmergency() {
   const btn   = document.getElementById('emergency-btn');
@@ -1207,7 +1209,7 @@ function checkEmergency() {
   if (!btn) return;
 
   const alreadyUsed = STATE.lastEmergency === todayStr();
-  const isBroke     = STATE.chips <= 50;
+  const isBroke     = STATE.chips <= 500;
 
   if (!alreadyUsed && isBroke) {
     btn.disabled = false;
@@ -1222,13 +1224,13 @@ function checkEmergency() {
   } else {
     btn.disabled = true;
     btn.classList.remove('emergency');
-    timer.textContent = '칩이 50 이하일 때 활성화';
+    timer.textContent = '칩이 500 이하일 때 활성화';
     timer.className = 'bonus-timer';
   }
 }
 
 function claimEmergency() {
-  if (STATE.chips > 50 || STATE.lastEmergency === todayStr()) return;
+  if (STATE.chips > 500 || STATE.lastEmergency === todayStr()) return;
   STATE.lastEmergency = todayStr();
   STATE.chips += EMERGENCY_AMT;
   updateChipDisplay();
@@ -1240,11 +1242,11 @@ function claimEmergency() {
 // ── 📋 일일 미션 ──────────────────────────────────────────
 // 미션 정의: id, 설명, 목표값, 보상, 카운터 키
 const MISSION_DEFS = [
-  { id:'m_slot3',  desc:'슬롯 3회 돌리기',      goal:3,  reward:150, counter:'cntSlot'  },
-  { id:'m_bj2',    desc:'블랙잭 2판 플레이',     goal:2,  reward:200, counter:'cntBJ'    },
-  { id:'m_dice5',  desc:'주사위 5회 굴리기',     goal:5,  reward:120, counter:'cntDice'  },
-  { id:'m_win3',   desc:'게임 3번 이기기',       goal:3,  reward:300, counter:'cntWins'  },
-  { id:'m_bet500', desc:'한 판에 500 이상 배팅', goal:1,  reward:250, counter:'cntBig'   },
+  { id:'m_slot3',  desc:'슬롯 3회 돌리기',      goal:3,  reward:1500, counter:'cntSlot'  },
+  { id:'m_bj2',    desc:'블랙잭 2판 플레이',     goal:2,  reward:2000, counter:'cntBJ'    },
+  { id:'m_dice5',  desc:'주사위 5회 굴리기',     goal:5,  reward:1200, counter:'cntDice'  },
+  { id:'m_win3',   desc:'게임 3번 이기기',       goal:3,  reward:3000, counter:'cntWins'  },
+  { id:'m_bet500', desc:'한 판에 500 이상 배팅', goal:1,  reward:2500, counter:'cntBig'   },
 ];
 
 // STATE에 미션 관련 필드 보장
