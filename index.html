@@ -314,6 +314,55 @@ body {
 .sum-btn.selected{ border-color:var(--gold-lt); background:rgba(201,168,76,.12); color:var(--gold-lt); }
 .dice-result-detail { font-size:11px; color:var(--dim); letter-spacing:2px; min-height:18px; text-align:center; }
 
+  /* ════════════════════════════════
+   바카라
+════════════════════════════════ */
+.bac-table {
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  width:100%; max-width:560px;
+}
+ 
+/* 배팅 선택 영역 */
+.bac-bet-zones {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; width:100%;
+}
+.bac-zone-btn {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:14px 8px; cursor:pointer;
+  border:2px solid #2a3050; background:rgba(0,0,0,.3);
+  transition:border-color .15s, background .15s;
+  font-family:'Cinzel',serif;
+}
+.bac-zone-btn:hover    { border-color:var(--gold); }
+.bac-zone-btn.selected { border-color:var(--gold-lt); background:rgba(201,168,76,.12); }
+.bac-zone-btn.selected.banker-sel { border-color:#e74c3c; background:rgba(231,76,60,.1); }
+.bac-zone-btn.selected.tie-sel    { border-color:#9b59b6; background:rgba(155,89,182,.1); }
+.bac-zone-label { font-size:9px; letter-spacing:2px; }
+.bac-zone-btn.player-sel .bac-zone-label { color:var(--gold-lt); }
+.bac-zone-btn.banker-sel  .bac-zone-label { color:#e74c3c; }
+.bac-zone-btn.tie-sel     .bac-zone-label { color:#9b59b6; }
+.bac-zone-name  { font-size:15px; color:var(--text); letter-spacing:1px; }
+.bac-zone-odds  { font-size:8px; color:var(--green); letter-spacing:1px; }
+ 
+/* 카드 구역 */
+.bac-hands {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%;
+}
+.bac-hand {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  background:rgba(0,0,0,.25); border:1px solid #2a3050; padding:12px 10px;
+}
+.bac-hand-label { font-size:8px; color:var(--dim); letter-spacing:3px; }
+.bac-cards { display:flex; gap:6px; justify-content:center; min-height:88px; }
+.bac-score { font-size:22px; color:var(--gold-lt); font-weight:600; min-height:28px; }
+ 
+/* 바카라 점수 규칙 안내 */
+.bac-rules {
+  display:flex; gap:16px; font-size:7px; color:var(--dim); letter-spacing:1px;
+  text-align:center; flex-wrap:wrap; justify-content:center;
+}
+.bac-rules span { color:var(--gold); display:block; margin-bottom:2px; }
+ 
 /* ════════════════════════════════
    보너스 패널
 ════════════════════════════════ */
@@ -369,6 +418,38 @@ body {
   transition:opacity .3s,transform .3s; pointer-events:none; white-space:nowrap;
 }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ════════════════════════════════
+   게임 히스토리 패널 (좌측 상단)
+════════════════════════════════ */
+.history-panel {
+  position:absolute; top:70px; left:12px;
+  background:rgba(0,0,0,.72); border:1px solid #2a3050;
+  padding:10px 12px; width:148px; z-index:100;
+  display:flex; flex-direction:column; gap:5px;
+  max-height:calc(100vh - 90px); overflow-y:auto;
+  backdrop-filter:blur(4px);
+}
+.history-panel-title {
+  font-size:7px; color:var(--gold); letter-spacing:3px;
+  border-bottom:1px solid #2a3050; padding-bottom:5px; margin-bottom:2px;
+}
+.hist-row {
+  display:flex; align-items:center; gap:5px;
+  font-size:8px; letter-spacing:.5px; padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,.04); line-height:1.5;
+}
+.hist-row:last-child{border-bottom:none}
+.hist-badge {
+  font-size:7px; padding:1px 5px; flex-shrink:0;
+  letter-spacing:.5px; font-family:'Cinzel',serif;
+}
+.hist-badge.win  { background:rgba(39,174,96,.2);  color:#2ecc71; }
+.hist-badge.lose { background:rgba(231,76,60,.2);  color:#e74c3c; }
+.hist-badge.push { background:rgba(201,168,76,.15); color:var(--gold); }
+.hist-detail { color:var(--dim); font-size:7px; line-height:1.6; }
+.hist-chips  { color:var(--gold); font-size:7px; margin-left:auto; white-space:nowrap; }
+ 
 </style>
 </head>
 <body>
@@ -1084,6 +1165,149 @@ function evaluateDice(v0,v1,bet) {
   document.getElementById('dice-roll-btn').disabled=false;
 }
 
+  /* ═══════════════════════════════════════════════
+   9. 바카라
+   규칙: 카드 합의 끝자리가 점수 (10,J,Q,K=0, A=1)
+   플레이어: 0~5면 3번째 카드
+   뱅커: 플레이어 3번째 카드와 뱅커 점수에 따라 규칙 적용
+   뱅커 승리 시 배당 ×1.95 (5% 수수료), 플레이어 ×2, 타이 ×8
+═══════════════════════════════════════════════ */
+let bacBet=0, bacChoice=null, bacDealing=false;
+let bacPlayerHand=[], bacBankerHand=[];
+ 
+function bacCardVal(r) {
+  if(['10','J','Q','K'].includes(r)) return 0;
+  if(r==='A') return 1;
+  return parseInt(r);
+}
+function bacScore(hand) {
+  return hand.reduce((s,c)=>s+bacCardVal(c.r),0)%10;
+}
+ 
+function selectBacBet(choice) {
+  if(bacDealing) return;
+  bacChoice = choice;
+  ['player','tie','banker'].forEach(k=>{
+    const el=document.getElementById('bac-btn-'+k);
+    el.className='bac-zone-btn';
+    if(k===choice) el.classList.add('selected',k+'-sel');
+  });
+}
+ 
+function bacDeal() {
+  if(bacDealing) return;
+  if(!bacChoice) { showToast('배팅을 먼저 선택하세요!'); return; }
+  bacBet=getBet('bac');
+  if(bacBet<=0||STATE.chips<bacBet){ document.getElementById('bac-result').textContent='칩 부족!'; return; }
+  if(bacBet>=500) missionTick('cntBig');
+ 
+  bacDealing=true;
+  document.getElementById('bac-deal-btn').disabled=true;
+  document.getElementById('bac-result').textContent='';
+  document.getElementById('bac-player-score').textContent='—';
+  document.getElementById('bac-banker-score').textContent='—';
+ 
+  // 덱 생성 (6덱)
+  const deck=[];
+  for(let d=0;d<6;d++)
+    for(const s of SUITS) for(const r of RANKS) deck.push({r,s,red:s==='♥'||s==='♦'});
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+ 
+  bacPlayerHand=[deck.pop(),deck.pop()];
+  bacBankerHand=[deck.pop(),deck.pop()];
+ 
+  // 카드 렌더링 (딜레이로 순차 표시)
+  const pc=document.getElementById('bac-player-cards');
+  const bc=document.getElementById('bac-banker-cards');
+  pc.innerHTML=''; bc.innerHTML='';
+ 
+  let step=0;
+  const dealSeq=[
+    ()=>pc.appendChild(renderCard(bacPlayerHand[0])),
+    ()=>bc.appendChild(renderCard(bacBankerHand[0])),
+    ()=>pc.appendChild(renderCard(bacPlayerHand[1])),
+    ()=>bc.appendChild(renderCard(bacBankerHand[1])),
+    ()=>{
+      // 점수 표시
+      const ps=bacScore(bacPlayerHand), bs=bacScore(bacBankerHand);
+      document.getElementById('bac-player-score').textContent=ps;
+      document.getElementById('bac-banker-score').textContent=bs;
+ 
+      // 내추럴 체크 (8 or 9)
+      if(ps>=8||bs>=8){ setTimeout(()=>bacFinish(deck),400); return; }
+ 
+      // 플레이어 3번째 카드 규칙
+      let p3=null;
+      if(ps<=5){ p3=deck.pop(); bacPlayerHand.push(p3); pc.appendChild(renderCard(p3)); }
+ 
+      // 뱅커 3번째 카드 규칙
+      setTimeout(()=>{
+        const ps2=bacScore(bacPlayerHand), bs2=bacScore(bacBankerHand);
+        document.getElementById('bac-player-score').textContent=ps2;
+        let drawBanker=false;
+        if(p3===null){
+          // 플레이어가 안 뽑은 경우
+          drawBanker = bs2<=5;
+        } else {
+          // 플레이어가 뽑은 경우 — 뱅커 룰 테이블
+          const pv=bacCardVal(p3.r);
+          if(bs2<=2) drawBanker=true;
+          else if(bs2===3) drawBanker=pv!==8;
+          else if(bs2===4) drawBanker=[2,3,4,5,6,7].includes(pv);
+          else if(bs2===5) drawBanker=[4,5,6,7].includes(pv);
+          else if(bs2===6) drawBanker=[6,7].includes(pv);
+          // bs2>=7: 뱅커 스탠드
+        }
+        if(drawBanker){
+          const b3=deck.pop(); bacBankerHand.push(b3); bc.appendChild(renderCard(b3));
+        }
+        setTimeout(()=>{
+          document.getElementById('bac-banker-score').textContent=bacScore(bacBankerHand);
+          bacFinish(deck);
+        },300);
+      },400);
+    }
+  ];
+ 
+  const next=()=>{ if(step<dealSeq.length){dealSeq[step++]();if(step<dealSeq.length-1)setTimeout(next,300);else dealSeq[step++]();} };
+  next();
+}
+ 
+function bacFinish() {
+  const ps=bacScore(bacPlayerHand), bs=bacScore(bacBankerHand);
+  document.getElementById('bac-player-score').textContent=ps;
+  document.getElementById('bac-banker-score').textContent=bs;
+  const res=document.getElementById('bac-result');
+  let delta=0;
+ 
+  if(ps===bs){ // 타이
+    if(bacChoice==='tie'){
+      delta=Math.floor(bacBet*8)-bacBet;
+      res.className='result-msg win'; res.textContent=`TIE! ×8 +${delta}`;
+    } else {
+      delta=0; res.className='result-msg push'; res.textContent='TIE — 배팅 반환';
+    }
+  } else if(ps>bs){ // 플레이어 승
+    if(bacChoice==='player'){
+      delta=bacBet; res.className='result-msg win'; res.textContent=`PLAYER WIN! +${delta}`;
+    } else {
+      delta=-bacBet; res.className='result-msg lose'; res.textContent=`PLAYER WIN... -${bacBet}`;
+    }
+  } else { // 뱅커 승
+    if(bacChoice==='banker'){
+      delta=Math.floor(bacBet*0.95); res.className='result-msg win'; res.textContent=`BANKER WIN! +${delta}`;
+    } else {
+      delta=-bacBet; res.className='result-msg lose'; res.textContent=`BANKER WIN... -${bacBet}`;
+    }
+  }
+ 
+  applyResult(delta,'bac');
+  const bacWinner=ps===bs?'TIE':ps>bs?'PLAYER':'BANKER';
+  addHistory('bac',delta>=0?'win':ps===bs?'push':'lose',`${bacWinner} (P:${ps} B:${bs})`,delta);
+  bacDealing=false;
+  document.getElementById('bac-deal-btn').disabled=false;
+}
+ 
 /* ═══════════════════════════════════════════════════════════
    9. 랭킹 (Supabase)
 ═══════════════════════════════════════════════════════════ */
