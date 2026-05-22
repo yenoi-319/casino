@@ -836,7 +836,7 @@ function evaluateSlot(res, bet) {
   }
 
   const delta = mult > 0 ? Math.floor(bet * mult) - bet : -bet;
-  applyResult(delta, _gameType_);
+  applyResult(delta, 'slot');
 
   slotSpinning = false;
   document.getElementById('slot-spin-btn').disabled = false;
