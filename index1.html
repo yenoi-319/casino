@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎰 ROYAL CASINO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap');
+ 
+:root {
+  --bg:      #0a0f1a;
+  --felt:    #0d3320;
+  --gold:    #c9a84c;
+  --gold-lt: #f0d080;
+  --red:     #c0392b;
+  --text:    #e8dfc8;
+  --dim:     #7a6a4a;
+  --panel:   #111827;
+  --green:   #27ae60;
+}
+ 
+* { margin:0; padding:0; box-sizing:border-box; }
+ 
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Cinzel', serif;
+  min-height: 100vh;
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.03) 40px, rgba(201,168,76,0.03) 41px),
+    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(201,168,76,0.03) 40px, rgba(201,168,76,0.03) 41px);
+}
+ 
+.screen { display:none; min-height:100vh; animation: fadeIn .3s ease; }
+.screen.active { display:flex; flex-direction:column; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+ 
+.game-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px; background:rgba(0,0,0,.5);
+  border-bottom:1px solid var(--gold); flex-shrink:0;
+}
+.back-btn {
+  font-family:'Cinzel',serif; font-size:12px; color:var(--gold);
+  background:transparent; border:1px solid var(--gold);
+  padding:6px 14px; cursor:pointer; letter-spacing:1px; transition:background .2s;
+}
+.back-btn:hover { background:rgba(201,168,76,.15); }
+.header-chips { font-size:13px; color:var(--gold-lt); letter-spacing:1px; }
+ 
+/* 닉네임 */
+#nickname-screen { align-items:center; justify-content:center; padding:40px 20px; }
+.nickname-box {
+  background:var(--panel); border:1px solid var(--gold);
+  padding:40px; text-align:center; max-width:380px; width:100%;
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+}
+.nickname-box h2 { font-family:'Cinzel Decorative',serif; font-size:18px; color:var(--gold); letter-spacing:3px; }
+.nickname-box p  { font-size:9px; color:var(--dim); letter-spacing:2px; line-height:2.2; }
+.nickname-input {
+  width:100%; background:rgba(0,0,0,.5); border:1px solid var(--gold);
+  color:var(--gold-lt); font-family:'Cinzel',serif; font-size:16px;
+  padding:12px 16px; text-align:center; letter-spacing:3px; outline:none;
+}
+.nickname-input::placeholder { color:var(--dim); font-size:12px; }
+.nickname-input:focus { border-color:var(--gold-lt); box-shadow:0 0 12px rgba(201,168,76,.2); }
+.nickname-btn {
+  width:100%; background:var(--gold); border:none; color:var(--bg);
+  font-family:'Cinzel',serif; font-size:13px; font-weight:600;
+  padding:12px; cursor:pointer; letter-spacing:3px; transition:background .2s;
+}
+.nickname-btn:hover { background:var(--gold-lt); }
+.nick-error { font-size:8px; color:#e74c3c; letter-spacing:1px; min-height:14px; }
+ 
+/* 로비 */
+#lobby { align-items:center; padding:32px 20px; gap:28px; overflow-y:auto; }
+.lobby-title { text-align:center; }
+.lobby-title h1 {
+  font-family:'Cinzel Decorative',serif;
+  font-size:clamp(26px,6vw,50px); color:var(--gold);
+  text-shadow:0 0 30px rgba(201,168,76,.5), 0 2px 0 #5a3a00;
+  letter-spacing:4px; line-height:1.2;
+}
+.lobby-title .subtitle { font-size:10px; color:var(--dim); letter-spacing:6px; margin-top:8px; }
+ 
+.chip-display {
+  text-align:center; background:rgba(0,0,0,.4);
+  border:1px solid var(--gold); padding:14px 40px; position:relative;
+}
+.chip-display::before,.chip-display::after {
+  content:'♦'; position:absolute; top:50%; transform:translateY(-50%);
+  color:var(--gold); font-size:12px;
+}
+.chip-display::before{left:12px} .chip-display::after{right:12px}
+.chip-label { font-size:8px; color:var(--dim); letter-spacing:3px; margin-bottom:4px; }
+.chip-amount { font-size:30px; color:var(--gold-lt); font-weight:600; }
+.chip-amount .unit { font-size:13px; color:var(--gold); margin-right:4px; }
+.nick-tag { font-size:8px; color:var(--dim); letter-spacing:2px; margin-top:4px; }
+ 
+.game-cards {
+  display:flex; gap:16px; flex-wrap:wrap; justify-content:center;
+  width:100%; max-width:900px;
+}
+.game-card {
+  flex:1; min-width:160px; max-width:210px; background:var(--panel);
+  border:1px solid #2a3050; padding:22px 14px; text-align:center;
+  cursor:pointer; transition:border-color .2s,transform .2s,box-shadow .2s;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.game-card:hover { border-color:var(--gold); transform:translateY(-4px); box-shadow:0 8px 30px rgba(201,168,76,.15); }
+.game-card .icon  { font-size:38px; }
+.game-card .name  { font-size:12px; color:var(--gold); letter-spacing:2px; }
+.game-card .desc  { font-size:8px; color:var(--dim); letter-spacing:1px; line-height:2; }
+.game-card .enter { font-size:8px; color:var(--bg); background:var(--gold); padding:5px 14px; letter-spacing:2px; margin-top:4px; }
+ 
+.lobby-stats {
+  display:flex; gap:32px; font-size:8px; color:var(--dim); letter-spacing:2px; text-align:center;
+}
+.lobby-stats span { color:var(--gold-lt); display:block; font-size:12px; margin-top:3px; }
+ 
+/* 랭킹 */
+.ranking-section {
+  width:100%; max-width:680px; background:rgba(0,0,0,.35);
+  border:1px solid #2a3050; padding:20px 24px;
+}
+.ranking-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.ranking-title  { font-size:10px; color:var(--gold); letter-spacing:4px; }
+.ranking-refresh {
+  font-size:8px; background:transparent; border:1px solid #2a3050;
+  color:var(--dim); font-family:'Cinzel',serif; padding:4px 10px;
+  cursor:pointer; letter-spacing:1px; transition:border-color .2s,color .2s;
+}
+.ranking-refresh:hover { border-color:var(--gold); color:var(--gold); }
+.rank-row {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 0; border-bottom:1px solid rgba(255,255,255,.04);
+}
+.rank-row:last-child{border-bottom:none}
+.rank-row.is-me { background:rgba(201,168,76,.06); margin:0 -6px; padding:7px 6px; }
+.rank-num { font-size:10px; color:var(--dim); min-width:22px; text-align:center; }
+.rank-num.top1{color:#ffd700;font-size:13px} .rank-num.top2{color:#c0c0c0} .rank-num.top3{color:#cd7f32}
+.rank-name { font-size:10px; color:var(--text); flex:1; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-name.is-me{color:var(--gold-lt)}
+.rank-bar-wrap { flex:2; height:5px; background:rgba(255,255,255,.05); overflow:hidden; }
+.rank-bar { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-lt)); transition:width .6s ease; }
+.rank-bar.is-me{background:linear-gradient(90deg,#e74c3c,#ff8a65)}
+.rank-chips { font-size:10px; color:var(--gold); min-width:68px; text-align:right; letter-spacing:1px; }
+.rank-loading { text-align:center; font-size:8px; color:var(--dim); letter-spacing:3px; padding:16px 0; }
+ 
+/* 게임 공통 */
+.game-body {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:20px; padding:24px 16px;
+  background:radial-gradient(ellipse at center,#0f4a2a 0%,#082010 100%);
+  overflow-y:auto;
+}
+.bet-area {
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  background:rgba(0,0,0,.3); border:1px solid rgba(201,168,76,.2);
+  padding:16px 24px; width:100%; max-width:480px;
+}
+.bet-label { font-size:8px; color:var(--dim); letter-spacing:3px; }
+.bet-controls { display:flex; align-items:center; gap:8px; }
+.bet-btn {
+  background:rgba(201,168,76,.15); border:1px solid var(--gold);
+  color:var(--gold); font-family:'Cinzel',serif; font-size:11px;
+  padding:6px 12px; cursor:pointer; transition:background .15s;
+}
+.bet-btn:hover { background:rgba(201,168,76,.3); }
+.bet-input {
+  background:rgba(0,0,0,.5); border:1px solid var(--gold);
+  color:var(--gold-lt); font-family:'Cinzel',serif; font-size:16px;
+  padding:8px 12px; text-align:center; width:120px; outline:none; letter-spacing:2px;
+}
+.bet-presets { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.preset-btn {
+  background:transparent; border:1px solid #2a3050; color:var(--dim);
+  font-family:'Cinzel',serif; font-size:8px; padding:4px 10px;
+  cursor:pointer; transition:all .15s; letter-spacing:1px;
+}
+.preset-btn:hover { border-color:var(--gold); color:var(--gold); }
+.action-btn {
+  background:var(--gold); border:none; color:var(--bg);
+  font-family:'Cinzel',serif; font-size:13px; font-weight:600;
+  padding:12px 36px; cursor:pointer; letter-spacing:3px;
+  transition:background .2s, transform .1s;
+}
+.action-btn:hover  { background:var(--gold-lt); }
+.action-btn:active { transform:scale(.97); }
+.action-btn:disabled { background:#3a3020; color:#5a4a30; cursor:not-allowed; }
+.result-msg {
+  font-size:20px; letter-spacing:3px; text-align:center;
+  min-height:30px; font-weight:600;
+}
+.result-msg.win  { color:#2ecc71; text-shadow:0 0 20px rgba(46,204,113,.4); }
+.result-msg.lose { color:#e74c3c; text-shadow:0 0 20px rgba(231,76,60,.4); }
+.result-msg.push { color:var(--gold); }
+ 
+/* 슬롯 */
+.slot-machine {
+  background:rgba(0,0,0,.5); border:2px solid var(--gold);
+  padding:24px; display:flex; flex-direction:column; align-items:center; gap:16px;
+}
+.reels { display:flex; gap:8px; }
+.reel-window {
+  width:80px; height:80px; background:#000; border:2px solid #2a3050;
+  overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;
+}
+.reel-inner { display:flex; flex-direction:column; align-items:center; }
+.reel-symbol { font-size:36px; height:80px; display:flex; align-items:center; justify-content:center; width:80px; }
+.reel-window.spinning .reel-inner { animation: spinReel .08s linear infinite; }
+@keyframes spinReel { 0%{transform:translateY(0)} 100%{transform:translateY(-80px)} }
+.slot-paytable { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; font-size:7px; color:var(--dim); letter-spacing:1px; }
+.slot-paytable .pt-row { display:flex; gap:6px; align-items:center; }
+.slot-paytable .pt-row span { color:var(--gold); }
+ 
+/* 블랙잭 */
+.bj-table { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:520px; }
+.bj-zone  { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+.bj-label { font-size:8px; color:var(--dim); letter-spacing:3px; }
+.bj-cards { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; min-height:96px; }
+.card {
+  width:60px; height:88px; background:#fdf6e3; border-radius:4px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:'Cinzel',serif; font-weight:600;
+  box-shadow:2px 2px 6px rgba(0,0,0,.4); color:#1a1a1a; flex-shrink:0;
+}
+.card.red-card { color:#c0392b; }
+.card.back {
+  background:linear-gradient(135deg,#1a3a6a 25%,#0a1a3a 25%,#0a1a3a 50%,#1a3a6a 50%,#1a3a6a 75%,#0a1a3a 75%);
+  background-size:12px 12px; color:transparent;
+}
+.card .rank { font-size:18px; line-height:1; }
+.card .suit { font-size:14px; line-height:1; }
+.card-new { animation: cardDeal .25s ease-out; }
+@keyframes cardDeal { from{transform:translateY(-20px) scale(.8);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+.bj-score   { font-size:18px; color:var(--gold-lt); font-weight:600; min-height:24px; }
+.bj-divider { width:80%; height:1px; background:rgba(255,255,255,.1); }
+.bj-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.bj-btn {
+  background:rgba(0,0,0,.4); border:1px solid var(--gold); color:var(--gold);
+  font-family:'Cinzel',serif; font-size:11px; padding:8px 20px;
+  cursor:pointer; letter-spacing:2px; transition:background .15s;
+}
+.bj-btn:hover     { background:rgba(201,168,76,.2); }
+.bj-btn:disabled  { opacity:.3; cursor:not-allowed; }
+ 
+/* 주사위 */
+.dice-area { display:flex; flex-direction:column; align-items:center; gap:20px; width:100%; max-width:500px; }
+.dice-display { display:flex; gap:20px; }
+.die {
+  width:72px; height:72px; background:#fdf6e3; border-radius:10px;
+  display:grid; place-items:center; font-size:36px;
+  box-shadow:3px 3px 8px rgba(0,0,0,.5); transition:transform .1s;
+}
+.die.rolling { animation:rollDie .08s linear infinite; }
+@keyframes rollDie { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+.dice-bet-options { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; width:100%; }
+.dice-opt {
+  background:rgba(0,0,0,.3); border:1px solid #2a3050;
+  padding:10px 8px; text-align:center; cursor:pointer;
+  transition:border-color .15s,background .15s;
+  display:flex; flex-direction:column; gap:4px;
+}
+.dice-opt:hover    { border-color:var(--gold); }
+.dice-opt.selected { border-color:var(--gold-lt); background:rgba(201,168,76,.12); }
+.dice-opt .opt-label { font-size:8px; color:var(--dim); letter-spacing:1px; }
+.dice-opt .opt-val   { font-size:13px; color:var(--gold); }
+.dice-opt .opt-odds  { font-size:7px; color:var(--green); }
+.dice-sum-btns { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.sum-btn {
+  background:rgba(0,0,0,.3); border:1px solid #2a3050; color:var(--dim);
+  font-family:'Cinzel',serif; font-size:10px; width:34px; height:34px;
+  cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center;
+}
+.sum-btn:hover    { border-color:var(--gold); color:var(--gold); }
+.sum-btn.selected { border-color:var(--gold-lt); background:rgba(201,168,76,.12); color:var(--gold-lt); }
+.dice-result-detail { font-size:11px; color:var(--dim); letter-spacing:2px; min-height:18px; text-align:center; }
+ 
+/* ════════════════════════════════
+   바카라
+════════════════════════════════ */
+.bac-table {
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  width:100%; max-width:560px;
+}
+ 
+/* 배팅 선택 영역 */
+.bac-bet-zones {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; width:100%;
+}
+.bac-zone-btn {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:14px 8px; cursor:pointer;
+  border:2px solid #2a3050; background:rgba(0,0,0,.3);
+  transition:border-color .15s, background .15s;
+  font-family:'Cinzel',serif;
+}
+.bac-zone-btn:hover    { border-color:var(--gold); }
+.bac-zone-btn.selected { border-color:var(--gold-lt); background:rgba(201,168,76,.12); }
+.bac-zone-btn.selected.banker-sel { border-color:#e74c3c; background:rgba(231,76,60,.1); }
+.bac-zone-btn.selected.tie-sel    { border-color:#9b59b6; background:rgba(155,89,182,.1); }
+.bac-zone-label { font-size:9px; letter-spacing:2px; }
+.bac-zone-btn.player-sel .bac-zone-label { color:var(--gold-lt); }
+.bac-zone-btn.banker-sel  .bac-zone-label { color:#e74c3c; }
+.bac-zone-btn.tie-sel     .bac-zone-label { color:#9b59b6; }
+.bac-zone-name  { font-size:15px; color:var(--text); letter-spacing:1px; }
+.bac-zone-odds  { font-size:8px; color:var(--green); letter-spacing:1px; }
+ 
+/* 카드 구역 */
+.bac-hands {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%;
+}
+.bac-hand {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  background:rgba(0,0,0,.25); border:1px solid #2a3050; padding:12px 10px;
+}
+.bac-hand-label { font-size:8px; color:var(--dim); letter-spacing:3px; }
+.bac-cards { display:flex; gap:6px; justify-content:center; min-height:88px; }
+.bac-score { font-size:22px; color:var(--gold-lt); font-weight:600; min-height:28px; }
+ 
+/* 바카라 점수 규칙 안내 */
+.bac-rules {
+  display:flex; gap:16px; font-size:7px; color:var(--dim); letter-spacing:1px;
+  text-align:center; flex-wrap:wrap; justify-content:center;
+}
+.bac-rules span { color:var(--gold); display:block; margin-bottom:2px; }
+ 
+/* 보너스 패널 */
+.bonus-panel {
+  width:100%; max-width:680px;
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+@media(max-width:520px){ .bonus-panel{ grid-template-columns:1fr; } }
+.bonus-card {
+  background:rgba(0,0,0,.35); border:1px solid #2a3050;
+  padding:16px 18px; display:flex; flex-direction:column; gap:10px;
+}
+.bonus-card-title { font-size:9px; color:var(--gold); letter-spacing:3px; margin-bottom:2px; }
+.bonus-btn {
+  width:100%; background:transparent; border:1px solid var(--gold);
+  color:var(--gold); font-family:'Cinzel',serif; font-size:10px;
+  padding:9px 12px; cursor:pointer; letter-spacing:2px; transition:background .2s;
+}
+.bonus-btn:hover:not(:disabled) { background:rgba(201,168,76,.15); }
+.bonus-btn:disabled  { border-color:#2a3050; color:var(--dim); cursor:not-allowed; }
+.bonus-btn.ready     { border-color:var(--green); color:var(--green); animation:pulse-green 1.5s ease-in-out infinite; }
+.bonus-btn.emergency { border-color:#e74c3c; color:#e74c3c; animation:pulse-red 1.5s ease-in-out infinite; }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(39,174,96,0)} 50%{box-shadow:0 0 8px 2px rgba(39,174,96,.35)} }
+@keyframes pulse-red   { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0)} 50%{box-shadow:0 0 8px 2px rgba(231,76,60,.35)} }
+.bonus-timer { font-size:8px; color:var(--dim); letter-spacing:1px; text-align:center; min-height:14px; }
+.bonus-timer.ready-txt { color:var(--green); }
+.mission-row {
+  display:flex; align-items:center; gap:8px;
+  font-size:8px; letter-spacing:1px; padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.mission-row:last-child { border-bottom:none; }
+.mission-check {
+  width:16px; height:16px; border:1px solid var(--dim);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px;
+}
+.mission-check.done { border-color:var(--green); color:var(--green); }
+.mission-desc { flex:1; color:var(--dim); line-height:1.8; }
+.mission-desc.done { color:var(--text); text-decoration:line-through; opacity:.5; }
+.mission-reward { font-size:8px; color:var(--gold); white-space:nowrap; }
+.mission-claim-btn {
+  background:transparent; border:1px solid var(--gold); color:var(--gold);
+  font-family:'Cinzel',serif; font-size:7px; padding:3px 8px;
+  cursor:pointer; letter-spacing:1px; transition:background .15s; white-space:nowrap;
+}
+.mission-claim-btn:hover { background:rgba(201,168,76,.15); }
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--panel); border:1px solid var(--gold);
+  padding:10px 22px; font-size:10px; color:var(--gold-lt);
+  letter-spacing:2px; z-index:9999; opacity:0;
+  transition:opacity .3s,transform .3s; pointer-events:none; white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+ 
+/* ════════════════════════════════
+   게임 히스토리 패널 (좌측 상단)
+════════════════════════════════ */
+.history-panel {
+  position:absolute; top:70px; left:12px;
+  background:rgba(0,0,0,.72); border:1px solid #2a3050;
+  padding:10px 12px; width:148px; z-index:100;
+  display:flex; flex-direction:column; gap:5px;
+  max-height:calc(100vh - 90px); overflow-y:auto;
+  backdrop-filter:blur(4px);
+}
+.history-panel-title {
+  font-size:7px; color:var(--gold); letter-spacing:3px;
+  border-bottom:1px solid #2a3050; padding-bottom:5px; margin-bottom:2px;
+}
+.hist-row {
+  display:flex; align-items:center; gap:5px;
+  font-size:8px; letter-spacing:.5px; padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,.04); line-height:1.5;
+}
+.hist-row:last-child{border-bottom:none}
+.hist-badge {
+  font-size:7px; padding:1px 5px; flex-shrink:0;
+  letter-spacing:.5px; font-family:'Cinzel',serif;
+}
+.hist-badge.win  { background:rgba(39,174,96,.2);  color:#2ecc71; }
+.hist-badge.lose { background:rgba(231,76,60,.2);  color:#e74c3c; }
+.hist-badge.push { background:rgba(201,168,76,.15); color:var(--gold); }
+.hist-detail { color:var(--dim); font-size:7px; line-height:1.6; }
+.hist-chips  { color:var(--gold); font-size:7px; margin-left:auto; white-space:nowrap; }
+
+</style>
+</head>
+<body>
+ 
+<!-- 닉네임 -->
+<div id="nickname-screen" class="screen active">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+    <div class="nickname-box">
+      <div style="font-size:44px">🎰</div>
+      <h2>ROYAL CASINO</h2>
+      <p>랭킹에 표시될 닉네임을<br>입력하세요 (최대 12자)</p>
+      <input id="nick-input" class="nickname-input" type="text" placeholder="닉네임 입력" maxlength="12" autocomplete="off"/>
+      <div id="nick-error" class="nick-error"></div>
+      <button class="nickname-btn" onclick="submitNickname()">입장하기 →</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- 로비 -->
+<div id="lobby" class="screen">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 20px;gap:24px;overflow-y:auto">
+    <div class="lobby-title">
+      <h1>ROYAL<br>CASINO</h1>
+      <div class="subtitle">— ESTABLISHED 2026 —</div>
+    </div>
+    <div class="chip-display">
+      <div class="chip-label">YOUR CHIPS</div>
+      <div class="chip-amount"><span class="unit">💰</span><span id="lobby-chips">1,000</span></div>
+      <div class="nick-tag" id="lobby-nick"></div>
+    </div>
+    <div class="game-cards">
+      <div class="game-card" onclick="goTo('screen-slot')">
+        <div class="icon">🎰</div><div class="name">SLOT</div>
+        <div class="desc">릴을 돌려<br>같은 심볼을 맞춰라</div>
+        <div class="enter">ENTER →</div>
+      </div>
+      <div class="game-card" onclick="goTo('screen-blackjack')">
+        <div class="icon">🃏</div><div class="name">BLACKJACK</div>
+        <div class="desc">21에 가장 가깝게<br>딜러를 이겨라</div>
+        <div class="enter">ENTER →</div>
+      </div>
+      <div class="game-card" onclick="goTo('screen-dice')">
+        <div class="icon">🎲</div><div class="name">DICE</div>
+        <div class="desc">주사위 결과를<br>예측하고 배팅</div>
+        <div class="enter">ENTER →</div>
+      </div>
+      <div class="game-card" onclick="showToast('PLINKO 준비중입니다')">
+        <div class="icon">🎯</div><div class="name">PLINKO</div>
+        <div class="desc">공을 떨어뜨려<br>배당 버킷을 노려라</div>
+        <div class="enter">ENTER →</div>
+      </div>
+      <div class="game-card" onclick="showToast('WHEEL 준비중입니다')">
+        <div class="icon">🎡</div><div class="name">WHEEL</div>
+        <div class="desc">배당 구간 선택 후<br>룰렛을 돌려라</div>
+        <div class="enter">ENTER →</div>
+      </div>
+      <div class="game-card" onclick="goTo('screen-baccarat')">
+        <div class="icon">👑</div><div class="name">BACCARAT</div>
+        <div class="desc">플레이어 vs 뱅커<br>9에 가까운 쪽이 승리</div>
+        <div class="enter">ENTER →</div>
+      </div>
+    </div>
+    <div class="lobby-stats">
+      <div>최고 보유액<span id="record-chips">1,000</span></div>
+      <div>총 게임 수<span id="record-games">0</span></div>
+      <div>총 수익<span id="record-profit">+0</span></div>
+    </div>
+    <div class="bonus-panel">
+      <div class="bonus-card">
+        <div class="bonus-card-title">⏰ 무료 충전</div>
+        <div class="bonus-timer" id="refill-timer">로딩 중...</div>
+        <button class="bonus-btn" id="refill-btn" onclick="claimRefill()" disabled>30분마다 +20000 칩</button>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-card-title">📅 출석 보너스</div>
+        <div class="bonus-timer" id="attend-timer">로딩 중...</div>
+        <button class="bonus-btn" id="attend-btn" onclick="claimAttendance()" disabled>오늘의 출석 +50000 칩</button>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-card-title">🆘 긴급 지원</div>
+        <div class="bonus-timer" id="emergency-timer">칩이 500 이하일 때 활성화</div>
+        <button class="bonus-btn" id="emergency-btn" onclick="claimEmergency()" disabled>파산 위기 +30000 칩</button>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-card-title">📋 일일 미션</div>
+        <div id="mission-list" style="display:flex;flex-direction:column;gap:2px"></div>
+      </div>
+    </div>
+    <div class="ranking-section">
+      <div class="ranking-header">
+        <div class="ranking-title">♛ LEADERBOARD</div>
+        <button class="ranking-refresh" onclick="loadRanking()">↻ 새로고침</button>
+      </div>
+      <div id="ranking-list"><div class="rank-loading">LOADING...</div></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- 슬롯 -->
+<div id="screen-slot" class="screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goTo('lobby')">← 로비</button>
+    <div>🎰 SLOT MACHINE</div>
+    <div class="header-chips">💰 <span class="cur-chips">0</span></div>
+  </div>
+  <!-- 히스토리 패널 -->
+  <div class="history-panel" id="hist-slot"><div class="history-panel-title">HISTORY</div></div>
+  <div class="game-body" style="position:relative">
+    <div class="slot-machine">
+      <div class="reels">
+        <div class="reel-window" id="reel0"><div class="reel-inner" id="ri0"><div class="reel-symbol">🍒</div></div></div>
+        <div class="reel-window" id="reel1"><div class="reel-inner" id="ri1"><div class="reel-symbol">🍋</div></div></div>
+        <div class="reel-window" id="reel2"><div class="reel-inner" id="ri2"><div class="reel-symbol">🍇</div></div></div>
+      </div>
+      <div class="slot-paytable">
+        <div class="pt-row">🍒🍒🍒 <span>×3</span></div>
+        <div class="pt-row">🍋🍋🍋 <span>×5</span></div>
+        <div class="pt-row">🍇🍇🍇 <span>×8</span></div>
+        <div class="pt-row">⭐⭐⭐ <span>×15</span></div>
+        <div class="pt-row">💎💎💎 <span>×30</span></div>
+        <div class="pt-row">🎰🎰🎰 <span>×100</span></div>
+        <div class="pt-row">아무거나 2개 <span>×1.9</span></div>
+      </div>
+    </div>
+    <div id="slot-result" class="result-msg"></div>
+    <div class="bet-area">
+      <div class="bet-label">BET AMOUNT</div>
+      <div class="bet-controls">
+        <button class="bet-btn" onclick="adjustBet('slot',-100)">-100</button>
+        <input class="bet-input" id="slot-bet" type="number" value="100" min="10">
+        <button class="bet-btn" onclick="adjustBet('slot',100)">+100</button>
+      </div>
+      <div class="bet-presets">
+        <button class="preset-btn" onclick="setBet('slot',100)">100</button>
+        <button class="preset-btn" onclick="setBet('slot',1000)">1K</button>
+        <button class="preset-btn" onclick="setBet('slot',10000)">10K</button>
+        <button class="preset-btn" onclick="setBet('slot',50000)">50K</button>
+        <button class="preset-btn" onclick="setBet('slot',100000)">100K</button>
+        <button class="preset-btn" onclick="setBetHalf('slot')">½</button>
+        <button class="preset-btn" onclick="setBetAll('slot')">ALL</button>
+      </div>
+    </div>
+    <button class="action-btn" id="slot-spin-btn" onclick="spinSlot()">SPIN 🎰</button>
+  </div>
+</div>
+ 
+<!-- 블랙잭 -->
+<div id="screen-blackjack" class="screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goTo('lobby')">← 로비</button>
+    <div>🃏 BLACKJACK</div>
+    <div class="header-chips">💰 <span class="cur-chips">0</span></div>
+  </div>
+  <div class="game-body">
+    <div class="bj-table">
+      <div class="bj-zone">
+        <div class="bj-label">DEALER</div>
+        <div class="bj-cards" id="dealer-cards"></div>
+        <div class="bj-score" id="dealer-score"></div>
+      </div>
+      <div class="bj-divider"></div>
+      <div class="bj-zone">
+        <div class="bj-label">YOU</div>
+        <div class="bj-cards" id="player-cards"></div>
+        <div class="bj-score" id="player-score"></div>
+      </div>
+    </div>
+    <div id="bj-result" class="result-msg"></div>
+    <div class="bet-area">
+      <div class="bet-label">BET AMOUNT</div>
+      <div class="bet-controls">
+        <button class="bet-btn" onclick="adjustBet('bj',-100)">-100</button>
+        <input class="bet-input" id="bj-bet" type="number" value="100" min="10">
+        <button class="bet-btn" onclick="adjustBet('bj',100)">+100</button>
+      </div>
+      <div class="bet-presets">
+        <button class="preset-btn" onclick="setBet('bj',100)">100</button>
+        <button class="preset-btn" onclick="setBet('bj',1000)">1K</button>
+        <button class="preset-btn" onclick="setBet('bj',10000)">10K</button>
+        <button class="preset-btn" onclick="setBet('bj',50000)">50K</button>
+        <button class="preset-btn" onclick="setBet('bj',100000)">100K</button>
+        <button class="preset-btn" onclick="setBetHalf('bj')">½</button>
+        <button class="preset-btn" onclick="setBetAll('bj')">ALL</button>
+      </div>
+    </div>
+    <div class="bj-actions">
+      <button class="bj-btn" id="bj-deal"   onclick="bjDeal()">DEAL</button>
+      <button class="bj-btn" id="bj-hit"    onclick="bjHit()"    disabled>HIT</button>
+      <button class="bj-btn" id="bj-stand"  onclick="bjStand()"  disabled>STAND</button>
+      <button class="bj-btn" id="bj-double" onclick="bjDouble()" disabled>DOUBLE</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- 주사위 -->
+<div id="screen-dice" class="screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goTo('lobby')">← 로비</button>
+    <div>🎲 DICE BETTING</div>
+    <div class="header-chips">💰 <span class="cur-chips">0</span></div>
+  </div>
+  <!-- 히스토리 패널 -->
+  <div class="history-panel" id="hist-dice"><div class="history-panel-title">HISTORY</div></div>
+  <div class="game-body" style="position:relative">
+    <div class="dice-area">
+      <div class="dice-display">
+        <div class="die" id="die0">⚀</div>
+        <div class="die" id="die1">⚁</div>
+      </div>
+      <div id="dice-result-detail" class="dice-result-detail"></div>
+      <div style="font-size:8px;color:var(--dim);letter-spacing:3px">배팅 방식 선택</div>
+      <div class="dice-bet-options">
+        <div class="dice-opt selected" id="dopt-odd" onclick="selectDiceType('odd')">
+          <div class="opt-label">홀수</div><div class="opt-val">ODD</div><div class="opt-odds">×2.0</div>
+        </div>
+        <div class="dice-opt" id="dopt-even" onclick="selectDiceType('even')">
+          <div class="opt-label">짝수</div><div class="opt-val">EVEN</div><div class="opt-odds">×2.0</div>
+        </div>
+        <div class="dice-opt" id="dopt-sum" onclick="selectDiceType('sum')">
+          <div class="opt-label">합계 맞추기</div><div class="opt-val">SUM</div><div class="opt-odds">×5~30</div>
+        </div>
+      </div>
+      <div id="sum-picker" style="display:none;flex-direction:column;align-items:center;gap:8px">
+        <div style="font-size:8px;color:var(--dim);letter-spacing:2px">합계 선택 (2~12)</div>
+        <div class="dice-sum-btns" id="sum-btns"></div>
+      </div>
+      <div id="dice-result" class="result-msg"></div>
+      <div class="bet-area">
+        <div class="bet-label">BET AMOUNT</div>
+        <div class="bet-controls">
+          <button class="bet-btn" onclick="adjustBet('dice',-100)">-100</button>
+          <input class="bet-input" id="dice-bet" type="number" value="100" min="10">
+          <button class="bet-btn" onclick="adjustBet('dice',100)">+100</button>
+        </div>
+        <div class="bet-presets">
+          <button class="preset-btn" onclick="setBet('dice',100)">100</button>
+          <button class="preset-btn" onclick="setBet('dice',1000)">1K</button>
+          <button class="preset-btn" onclick="setBet('dice',10000)">10K</button>
+          <button class="preset-btn" onclick="setBet('dice',50000)">50K</button>
+          <button class="preset-btn" onclick="setBet('dice',100000)">100K</button>
+          <button class="preset-btn" onclick="setBetHalf('dice')">½</button>
+          <button class="preset-btn" onclick="setBetAll('dice')">ALL</button>
+        </div>
+      </div>
+      <button class="action-btn" id="dice-roll-btn" onclick="rollDice()">ROLL 🎲</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- 바카라 -->
+<div id="screen-baccarat" class="screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goTo('lobby')">← 로비</button>
+    <div>👑 BACCARAT</div>
+    <div class="header-chips">💰 <span class="cur-chips">0</span></div>
+  </div>
+  <!-- 히스토리 패널 -->
+  <div class="history-panel" id="hist-bac"><div class="history-panel-title">HISTORY</div></div>
+  <div class="game-body" style="position:relative">
+    <div class="bac-table">
+ 
+      <!-- 배팅 선택 -->
+      <div style="font-size:8px;color:var(--dim);letter-spacing:3px">배팅 선택</div>
+      <div class="bac-bet-zones">
+        <div class="bac-zone-btn" id="bac-btn-player" onclick="selectBacBet('player')">
+          <div class="bac-zone-label">PLAYER</div>
+          <div class="bac-zone-name">플레이어</div>
+          <div class="bac-zone-odds">×2.0</div>
+        </div>
+        <div class="bac-zone-btn" id="bac-btn-tie" onclick="selectBacBet('tie')">
+          <div class="bac-zone-label">TIE</div>
+          <div class="bac-zone-name">타이</div>
+          <div class="bac-zone-odds">×8.0</div>
+        </div>
+        <div class="bac-zone-btn" id="bac-btn-banker" onclick="selectBacBet('banker')">
+          <div class="bac-zone-label">BANKER</div>
+          <div class="bac-zone-name">뱅커</div>
+          <div class="bac-zone-odds">×1.95</div>
+        </div>
+      </div>
+ 
+      <!-- 카드 영역 -->
+      <div class="bac-hands">
+        <div class="bac-hand">
+          <div class="bac-hand-label">PLAYER</div>
+          <div class="bac-cards" id="bac-player-cards"></div>
+          <div class="bac-score" id="bac-player-score">—</div>
+        </div>
+        <div class="bac-hand">
+          <div class="bac-hand-label">BANKER</div>
+          <div class="bac-cards" id="bac-banker-cards"></div>
+          <div class="bac-score" id="bac-banker-score">—</div>
+        </div>
+      </div>
+ 
+      <div id="bac-result" class="result-msg"></div>
+ 
+      <!-- 배팅 UI -->
+      <div class="bet-area">
+        <div class="bet-label">BET AMOUNT</div>
+        <div class="bet-controls">
+          <button class="bet-btn" onclick="adjustBet('bac',-100)">-100</button>
+          <input class="bet-input" id="bac-bet" type="number" value="100" min="10">
+          <button class="bet-btn" onclick="adjustBet('bac',100)">+100</button>
+        </div>
+        <div class="bet-presets">
+          <button class="preset-btn" onclick="setBet('bac',100)">100</button>
+          <button class="preset-btn" onclick="setBet('bac',1000)">1K</button>
+          <button class="preset-btn" onclick="setBet('bac',10000)">10K</button>
+          <button class="preset-btn" onclick="setBet('bac',50000)">50K</button>
+          <button class="preset-btn" onclick="setBet('bac',100000)">100K</button>
+          <button class="preset-btn" onclick="setBetHalf('bac')">½</button>
+          <button class="preset-btn" onclick="setBetAll('bac')">ALL</button>
+        </div>
+      </div>
+ 
+      <button class="action-btn" id="bac-deal-btn" onclick="bacDeal()">DEAL 👑</button>
+ 
+      <!-- 간단 규칙 안내 -->
+      <div class="bac-rules">
+        <div><span>카드 합산</span>10 이상이면 끝자리만</div>
+        <div><span>내추럴</span>첫 2장 합이 8 또는 9</div>
+        <div><span>뱅커 수수료</span>승리 시 5% 차감</div>
+        <div><span>3번째 카드</span>규칙에 따라 자동 지급</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<script>
+/* ═══════════════════════════════════════════════
+   1. UUID & 저장 시스템
+═══════════════════════════════════════════════ */
+function genUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0;
+    return (c==='x'?r:(r&0x3|0x8)).toString(16);
+  });
+}
+let USER_ID = localStorage.getItem('rc_uuid');
+if (!USER_ID) { USER_ID = genUUID(); localStorage.setItem('rc_uuid', USER_ID); }
+ 
+const SB_URL = 'https://yykfrhxdsezwtjymakzs.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5a2ZyaHhkc2V6d3RqeW1ha3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzQ1NzksImV4cCI6MjA5NDkxMDU3OX0.wkXu30uMbyWDMKJ2oj91hQagnYXiTupJimO3IpdqomA';
+const SB_HEADERS = {
+  'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY,
+  'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates',
+};
+ 
+async function sbUpsertRanking(uid, nickname, chips) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/rankings`, {
+      method:'POST', headers:SB_HEADERS,
+      body: JSON.stringify({uid, nickname, chips, updated_at: new Date().toISOString()}),
+    });
+  } catch(e){}
+}
+async function sbFetchRankings() {
+  const res = await fetch(
+    `${SB_URL}/rest/v1/rankings?select=uid,nickname,chips&order=chips.desc&limit=20`,
+    {headers: SB_HEADERS}
+  );
+  if (!res.ok) throw new Error('fetch failed');
+  return res.json();
+}
+ 
+const SAVE_KEY = `rc_save_${USER_ID}`;
+ 
+/* ═══════════════════════════════════════════════
+   2. 상태
+═══════════════════════════════════════════════ */
+const STATE = {
+  nickname:'', chips:1000, recordChips:1000, totalGames:0, totalProfit:0,
+};
+async function saveState() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(STATE)); } catch(e){}
+  if (STATE.nickname) await sbUpsertRanking(USER_ID, STATE.nickname, STATE.recordChips);
+}
+async function loadState() {
+  try { const r=localStorage.getItem(SAVE_KEY); if(r) Object.assign(STATE,JSON.parse(r)); } catch(e){}
+}
+ 
+/* ═══════════════════════════════════════════════
+   3. 닉네임
+═══════════════════════════════════════════════ */
+async function initApp() {
+  await loadState();
+  if (STATE.nickname) { goTo('lobby'); loadRanking(); }
+  document.getElementById('nick-input').addEventListener('keydown', e => {
+    if (e.key==='Enter') submitNickname();
+  });
+}
+function submitNickname() {
+  const val = document.getElementById('nick-input').value.trim();
+  const err = document.getElementById('nick-error');
+  if (!val)          { err.textContent='닉네임을 입력해주세요'; return; }
+  if (val.length<2)  { err.textContent='2자 이상 입력해주세요'; return; }
+  STATE.nickname = val;
+  saveState(); goTo('lobby'); loadRanking();
+}
+ 
+/* ═══════════════════════════════════════════════
+   4. 화면 전환
+═══════════════════════════════════════════════ */
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  updateChipDisplay();
+  if (id==='lobby') { loadRanking(); initBonuses(); }
+}
+function updateChipDisplay() {
+  const fmt = n => Math.floor(n).toLocaleString();
+  document.getElementById('lobby-chips').textContent = fmt(STATE.chips);
+  document.getElementById('lobby-nick').textContent  = STATE.nickname?`[ ${STATE.nickname} ]`:'';
+  document.querySelectorAll('.cur-chips').forEach(el=>el.textContent=fmt(STATE.chips));
+  document.getElementById('record-chips').textContent  = fmt(STATE.recordChips);
+  document.getElementById('record-games').textContent  = STATE.totalGames;
+  const p=Math.floor(STATE.totalProfit);
+  document.getElementById('record-profit').textContent = (p>=0?'+':'')+fmt(p);
+}
+function applyResult(delta, gameType) {
+  STATE.chips += delta; STATE.totalGames++; STATE.totalProfit += delta;
+  if (STATE.chips > STATE.recordChips) STATE.recordChips = STATE.chips;
+  if (STATE.chips < 0) STATE.chips = 0;
+  updateChipDisplay(); saveState();
+  if (gameType==='slot') missionTick('cntSlot');
+  if (gameType==='bj')   missionTick('cntBJ');
+  if (gameType==='dice') missionTick('cntDice');
+  if (gameType==='bac')   missionTick('cntBac');
+  if (gameType==='plinko') missionTick('cntPlinko');
+  if (gameType==='wheel')  missionTick('cntWheel');
+  if (delta > 0)         missionTick('cntWins');
+  checkEmergency();
+}
+ 
+/* ═══════════════════════════════════════════════
+   5. 배팅 유틸
+═══════════════════════════════════════════════ */
+const betIds = {slot:'slot-bet', bj:'bj-bet', dice:'dice-bet', bac:'bac-bet', plinko:'plinko-bet', wheel:'wheel-bet'};
+function getBet(g)      { const v=parseInt(document.getElementById(betIds[g]).value)||0; return Math.max(10,Math.min(v,STATE.chips)); }
+function setBet(g,v)    { document.getElementById(betIds[g]).value=Math.min(v,STATE.chips); }
+function setBetHalf(g)  { setBet(g,Math.max(10,Math.floor(STATE.chips/2))); }
+function setBetAll(g)   { setBet(g,STATE.chips); }
+function adjustBet(g,d) { const c=parseInt(document.getElementById(betIds[g]).value)||0; setBet(g,Math.max(10,c+d)); }
+ 
+/* ═══════════════════════════════════════════════
+   6. 슬롯
+═══════════════════════════════════════════════ */
+const SYMBOLS  = ['🍒','🍋','🍇','🍊','⭐','💎','🎰'];
+const SYM_ODDS = {'🍒':3,'🍋':5,'🍇':8,'🍊':6,'⭐':15,'💎':30,'🎰':100};
+let slotSpinning=false;
+ 
+function spinSlot() {
+  if (slotSpinning) return;
+  const bet=getBet('slot');
+  if (bet<=0||STATE.chips<bet) { document.getElementById('slot-result').textContent='칩 부족!'; return; }
+  if (bet>=500) missionTick('cntBig');
+  slotSpinning=true;
+  document.getElementById('slot-spin-btn').disabled=true;
+  document.getElementById('slot-result').textContent='';
+  const results=[0,1,2].map(()=>SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]);
+  [0,1,2].forEach((i,idx)=>{
+    const reel=document.getElementById('reel'+i);
+    const inner=document.getElementById('ri'+i);
+    reel.classList.add('spinning');
+    const si=setInterval(()=>{ inner.querySelector('.reel-symbol').textContent=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; },80);
+    setTimeout(()=>{
+      clearInterval(si); reel.classList.remove('spinning');
+      inner.querySelector('.reel-symbol').textContent=results[i];
+      if(idx===2) setTimeout(()=>evaluateSlot(results,bet),100);
+    },600+idx*300);
+  });
+}
+function evaluateSlot(res,bet) {
+  const [a,b,c]=res; let mult=0;
+  const el=document.getElementById('slot-result');
+  if (a===b&&b===c)          { mult=SYM_ODDS[a]; el.className='result-msg win'; el.textContent=`JACKPOT! ×${mult}`; }
+  else if(a===b||b===c||a===c){ mult=1.9;         el.className='result-msg win'; el.textContent='2 MATCH! ×1.9'; }
+  else                        {                   el.className='result-msg lose'; el.textContent='NO MATCH...'; }
+  const slotDelta=mult>0?Math.floor(bet*mult)-bet:-bet;
+  applyResult(slotDelta,'slot');
+  addHistory('slot',slotDelta>=0?'win':'lose', res[0]+res[1]+res[2], slotDelta);
+  slotSpinning=false; document.getElementById('slot-spin-btn').disabled=false;
+}
+ 
+/* ═══════════════════════════════════════════════
+   7. 블랙잭
+═══════════════════════════════════════════════ */
+const SUITS=['♠','♥','♦','♣'], RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let bjDeck=[],bjPlayer=[],bjDealer=[],bjBet=0,bjInGame=false;
+ 
+function buildDeck() {
+  const d=[];
+  for(const s of SUITS) for(const r of RANKS) d.push({r,s,red:s==='♥'||s==='♦'});
+  const deck=[...d,...d];
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  return deck;
+}
+function cardValue(r) { return ['J','Q','K'].includes(r)?10:r==='A'?11:parseInt(r); }
+function handScore(hand) {
+  let t=0,a=0;
+  for(const c of hand){t+=cardValue(c.r);if(c.r==='A')a++;}
+  while(t>21&&a>0){t-=10;a--;}
+  return t;
+}
+function renderCard(c,hidden=false) {
+  const el=document.createElement('div');
+  el.className='card card-new'+(hidden?' back':'')+(c.red&&!hidden?' red-card':'');
+  if(!hidden) el.innerHTML=`<div class="rank">${c.r}</div><div class="suit">${c.s}</div>`;
+  return el;
+}
+function renderBJ() {
+  const dc=document.getElementById('dealer-cards'),pc=document.getElementById('player-cards');
+  dc.innerHTML=''; pc.innerHTML='';
+  bjDealer.forEach((c,i)=>dc.appendChild(renderCard(c,i===1&&bjInGame)));
+  bjPlayer.forEach(c=>pc.appendChild(renderCard(c)));
+  document.getElementById('dealer-score').textContent=bjInGame?cardValue(bjDealer[0].r):handScore(bjDealer);
+  document.getElementById('player-score').textContent=handScore(bjPlayer);
+}
+function setBJButtons(on) {
+  document.getElementById('bj-deal').disabled=on;
+  document.getElementById('bj-hit').disabled=!on;
+  document.getElementById('bj-stand').disabled=!on;
+  document.getElementById('bj-double').disabled=!on||bjPlayer.length>2||STATE.chips<bjBet;
+}
+function bjDeal() {
+  bjBet=getBet('bj');
+  if(bjBet<=0||STATE.chips<bjBet){document.getElementById('bj-result').textContent='칩 부족!';return;}
+  bjDeck=buildDeck(); bjPlayer=[bjDeck.pop(),bjDeck.pop()]; bjDealer=[bjDeck.pop(),bjDeck.pop()];
+  if(bjBet>=500) missionTick('cntBig');
+  bjInGame=true; document.getElementById('bj-result').textContent='';
+  renderBJ(); setBJButtons(true);
+  if(handScore(bjPlayer)===21) setTimeout(bjStand,400);
+}
+function bjHit()  { bjPlayer.push(bjDeck.pop()); renderBJ(); if(handScore(bjPlayer)>21) bjEnd('bust'); }
+function bjStand(){
+  bjInGame=false; renderBJ();
+  const draw=()=>{ if(handScore(bjDealer)<17){bjDealer.push(bjDeck.pop());renderBJ();setTimeout(draw,400);}else bjEnd('stand'); };
+  setTimeout(draw,300);
+}
+function bjDouble(){
+  bjBet *= 2;
+  bjPlayer.push(bjDeck.pop()); renderBJ();
+  if(handScore(bjPlayer)>21) bjEnd('bust'); else bjStand();
+}
+function bjEnd(type) {
+  bjInGame=false; setBJButtons(false);
+  const ps=handScore(bjPlayer),ds=handScore(bjDealer);
+  const res=document.getElementById('bj-result'); renderBJ();
+  let delta=0;
+  if(type==='bust')                         {res.className='result-msg lose';res.textContent='BUST! -'+bjBet;delta=-bjBet;}
+  else if(ps===21&&bjPlayer.length===2&&ds!==21){res.className='result-msg win';res.textContent='BLACKJACK! ×1.5';delta=Math.floor(bjBet*1.5);}
+  else if(ds>21||ps>ds)                     {res.className='result-msg win';res.textContent='WIN! +'+bjBet;delta=bjBet;}
+  else if(ps===ds)                          {res.className='result-msg push';res.textContent='PUSH — 배팅 반환';delta=0;}
+  else                                      {res.className='result-msg lose';res.textContent='LOSE... -'+bjBet;delta=-bjBet;}
+  applyResult(delta,'bj');
+}
+ 
+/* ═══════════════════════════════════════════════
+   8. 주사위
+═══════════════════════════════════════════════ */
+const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+const SUM_ODDS={2:30,3:20,4:12,5:8,6:6,7:5,8:6,9:8,10:12,11:20,12:30};
+let diceType='odd',diceTarget=null,diceRolling=false;
+ 
+(function(){
+  const wrap=document.getElementById('sum-btns');
+  for(let n=2;n<=12;n++){
+    const btn=document.createElement('button');
+    btn.className='sum-btn'; btn.textContent=n; btn.dataset.n=n;
+    btn.onclick=()=>selectSum(n); wrap.appendChild(btn);
+  }
+})();
+ 
+function selectDiceType(t){
+  diceType=t;
+  ['odd','even','sum'].forEach(k=>document.getElementById('dopt-'+k).classList.toggle('selected',k===t));
+  document.getElementById('sum-picker').style.display=t==='sum'?'flex':'none';
+  if(t!=='sum') diceTarget=null;
+}
+function selectSum(n){
+  diceTarget=n;
+  document.querySelectorAll('.sum-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.n)===n));
+}
+function rollDice(){
+  if(diceRolling) return;
+  if(diceType==='sum'&&!diceTarget){document.getElementById('dice-result').textContent='합계를 선택하세요';return;}
+  const bet=getBet('dice');
+  if(bet<=0||STATE.chips<bet){document.getElementById('dice-result').textContent='칩 부족!';return;}
+  if(bet>=500) missionTick('cntBig');
+  diceRolling=true; document.getElementById('dice-roll-btn').disabled=true;
+  document.getElementById('dice-result').textContent=''; document.getElementById('dice-result-detail').textContent='';
+  const d0=document.getElementById('die0'),d1=document.getElementById('die1');
+  d0.classList.add('rolling'); d1.classList.add('rolling');
+  const si=setInterval(()=>{d0.textContent=DICE_FACES[Math.floor(Math.random()*6)];d1.textContent=DICE_FACES[Math.floor(Math.random()*6)];},80);
+  setTimeout(()=>{
+    clearInterval(si); d0.classList.remove('rolling'); d1.classList.remove('rolling');
+    const v0=Math.floor(Math.random()*6)+1,v1=Math.floor(Math.random()*6)+1;
+    d0.textContent=DICE_FACES[v0-1]; d1.textContent=DICE_FACES[v1-1];
+    evaluateDice(v0,v1,bet);
+  },1000);
+}
+function evaluateDice(v0,v1,bet){
+  const sum=v0+v1;
+  const res=document.getElementById('dice-result');
+  document.getElementById('dice-result-detail').textContent=`${v0} + ${v1} = ${sum}`;
+  let delta=0;
+  if(diceType==='odd'){
+    if(sum%2!==0){res.className='result-msg win';res.textContent='ODD WIN! +'+bet;delta=bet;}
+    else         {res.className='result-msg lose';res.textContent='EVEN... -'+bet;delta=-bet;}
+  }else if(diceType==='even'){
+    if(sum%2===0){res.className='result-msg win';res.textContent='EVEN WIN! +'+bet;delta=bet;}
+    else         {res.className='result-msg lose';res.textContent='ODD... -'+bet;delta=-bet;}
+  }else{
+    const odds=SUM_ODDS[sum];
+    if(sum===diceTarget){delta=Math.floor(bet*odds)-bet;res.className='result-msg win';res.textContent=`SUM ${sum}! ×${odds} +${delta}`;}
+    else                {delta=-bet;res.className='result-msg lose';res.textContent=`SUM ${sum}... -${bet}`;}
+  }
+  applyResult(delta,'dice');
+  const diceOE=diceType==='sum'?`SUM ${v0+v1}`:diceType==='odd'?'ODD':'EVEN';
+  addHistory('dice',delta>=0?'win':'lose',`${v0}+${v1}=${v0+v1} ${diceOE}`,delta);
+  diceRolling=false; document.getElementById('dice-roll-btn').disabled=false;
+}
+ 
+/* ═══════════════════════════════════════════════
+   9. 바카라
+═══════════════════════════════════════════════ */
+let bacBet=0, bacChoice=null, bacDealing=false;
+let bacPlayerHand=[], bacBankerHand=[];
+ 
+function bacCardVal(r) {
+  if(['10','J','Q','K'].includes(r)) return 0;
+  if(r==='A') return 1;
+  return parseInt(r);
+}
+function bacScore(hand) {
+  return hand.reduce((s,c)=>s+bacCardVal(c.r),0)%10;
+}
+ 
+function selectBacBet(choice) {
+  if(bacDealing) return;
+  bacChoice = choice;
+  ['player','tie','banker'].forEach(k=>{
+    const el=document.getElementById('bac-btn-'+k);
+    el.className='bac-zone-btn';
+    if(k===choice) el.classList.add('selected',k+'-sel');
+  });
+}
+ 
+function bacDeal() {
+  if(bacDealing) return;
+  if(!bacChoice) { showToast('배팅을 먼저 선택하세요!'); return; }
+  bacBet=getBet('bac');
+  if(bacBet<=0||STATE.chips<bacBet){ document.getElementById('bac-result').textContent='칩 부족!'; return; }
+  if(bacBet>=500) missionTick('cntBig');
+ 
+  bacDealing=true;
+  document.getElementById('bac-deal-btn').disabled=true;
+  document.getElementById('bac-result').textContent='';
+  document.getElementById('bac-player-score').textContent='—';
+  document.getElementById('bac-banker-score').textContent='—';
+ 
+  // 덱 생성 (6덱)
+  const deck=[];
+  for(let d=0;d<6;d++)
+    for(const s of SUITS) for(const r of RANKS) deck.push({r,s,red:s==='♥'||s==='♦'});
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+ 
+  bacPlayerHand=[deck.pop(),deck.pop()];
+  bacBankerHand=[deck.pop(),deck.pop()];
+ 
+  // 카드 렌더링 (딜레이로 순차 표시)
+  const pc=document.getElementById('bac-player-cards');
+  const bc=document.getElementById('bac-banker-cards');
+  pc.innerHTML=''; bc.innerHTML='';
+ 
+  let step=0;
+  const dealSeq=[
+    ()=>pc.appendChild(renderCard(bacPlayerHand[0])),
+    ()=>bc.appendChild(renderCard(bacBankerHand[0])),
+    ()=>pc.appendChild(renderCard(bacPlayerHand[1])),
+    ()=>bc.appendChild(renderCard(bacBankerHand[1])),
+    ()=>{
+      // 점수 표시
+      const ps=bacScore(bacPlayerHand), bs=bacScore(bacBankerHand);
+      document.getElementById('bac-player-score').textContent=ps;
+      document.getElementById('bac-banker-score').textContent=bs;
+ 
+      // 내추럴 체크 (8 or 9)
+      if(ps>=8||bs>=8){ setTimeout(()=>bacFinish(deck),400); return; }
+ 
+      // 플레이어 3번째 카드 규칙
+      let p3=null;
+      if(ps<=5){ p3=deck.pop(); bacPlayerHand.push(p3); pc.appendChild(renderCard(p3)); }
+ 
+      // 뱅커 3번째 카드 규칙
+      setTimeout(()=>{
+        const ps2=bacScore(bacPlayerHand), bs2=bacScore(bacBankerHand);
+        document.getElementById('bac-player-score').textContent=ps2;
+        let drawBanker=false;
+        if(p3===null){
+          // 플레이어가 안 뽑은 경우
+          drawBanker = bs2<=5;
+        } else {
+          // 플레이어가 뽑은 경우 — 뱅커 룰 테이블
+          const pv=bacCardVal(p3.r);
+          if(bs2<=2) drawBanker=true;
+          else if(bs2===3) drawBanker=pv!==8;
+          else if(bs2===4) drawBanker=[2,3,4,5,6,7].includes(pv);
+          else if(bs2===5) drawBanker=[4,5,6,7].includes(pv);
+          else if(bs2===6) drawBanker=[6,7].includes(pv);
+          // bs2>=7: 뱅커 스탠드
+        }
+        if(drawBanker){
+          const b3=deck.pop(); bacBankerHand.push(b3); bc.appendChild(renderCard(b3));
+        }
+        setTimeout(()=>{
+          document.getElementById('bac-banker-score').textContent=bacScore(bacBankerHand);
+          bacFinish(deck);
+        },300);
+      },400);
+    }
+  ];
+ 
+  const next=()=>{ if(step<dealSeq.length){dealSeq[step++]();if(step<dealSeq.length-1)setTimeout(next,300);else dealSeq[step++]();} };
+  next();
+}
+ 
+function bacFinish() {
+  const ps=bacScore(bacPlayerHand), bs=bacScore(bacBankerHand);
+  document.getElementById('bac-player-score').textContent=ps;
+  document.getElementById('bac-banker-score').textContent=bs;
+  const res=document.getElementById('bac-result');
+  let delta=0;
+ 
+  if(ps===bs){ // 타이
+    if(bacChoice==='tie'){
+      delta=Math.floor(bacBet*8)-bacBet;
+      res.className='result-msg win'; res.textContent=`TIE! ×8 +${delta}`;
+    } else {
+      delta=0; res.className='result-msg push'; res.textContent='TIE — 배팅 반환';
+    }
+  } else if(ps>bs){ // 플레이어 승
+    if(bacChoice==='player'){
+      delta=bacBet; res.className='result-msg win'; res.textContent=`PLAYER WIN! +${delta}`;
+    } else {
+      delta=-bacBet; res.className='result-msg lose'; res.textContent=`PLAYER WIN... -${bacBet}`;
+    }
+  } else { // 뱅커 승
+    if(bacChoice==='banker'){
+      delta=Math.floor(bacBet*0.95); res.className='result-msg win'; res.textContent=`BANKER WIN! +${delta}`;
+    } else {
+      delta=-bacBet; res.className='result-msg lose'; res.textContent=`BANKER WIN... -${bacBet}`;
+    }
+  }
+ 
+  applyResult(delta,'bac');
+  const bacWinner=ps===bs?'TIE':ps>bs?'PLAYER':'BANKER';
+  addHistory('bac',delta>=0?'win':ps===bs?'push':'lose',`${bacWinner} (P:${ps} B:${bs})`,delta);
+  bacDealing=false;
+  document.getElementById('bac-deal-btn').disabled=false;
+}
+ 
+/* ═══════════════════════════════════════════════
+   10. 랭킹
+═══════════════════════════════════════════════ */
+async function loadRanking() {
+  const list=document.getElementById('ranking-list');
+  list.innerHTML='<div class="rank-loading">LOADING...</div>';
+  try {
+    const entries=await sbFetchRankings();
+    if(!entries||entries.length===0){list.innerHTML='<div class="rank-loading">아직 랭킹 데이터가 없습니다</div>';return;}
+    const top=entries.slice(0,10), maxChips=top[0]?.chips||1;
+    list.innerHTML='';
+    top.forEach((e,i)=>{
+      const isMe=e.uid===USER_ID;
+      const nc=i===0?'top1':i===1?'top2':i===2?'top3':'';
+      const nt=i===0?'👑':i===1?'🥈':i===2?'🥉':(i+1);
+      const bp=Math.max(4,Math.round(e.chips/maxChips*100));
+      const row=document.createElement('div');
+      row.className='rank-row'+(isMe?' is-me':'');
+      row.innerHTML=`
+        <div class="rank-num ${nc}">${nt}</div>
+        <div class="rank-name${isMe?' is-me':''}">${e.nickname}${isMe?' ◀':''}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar${isMe?' is-me':''}" style="width:${bp}%"></div></div>
+        <div class="rank-chips">💰 ${Math.floor(e.chips).toLocaleString()}</div>`;
+      list.appendChild(row);
+    });
+  } catch(e) { list.innerHTML='<div class="rank-loading">랭킹을 불러올 수 없습니다</div>'; }
+}
+ 
+/* ═══════════════════════════════════════════════
+   11. 보너스 시스템
+═══════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  let el=document.querySelector('.toast');
+  if(!el){el=document.createElement('div');el.className='toast';document.body.appendChild(el);}
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+ 
+const REFILL_MS=30*60*1000, REFILL_AMT=20000;
+function checkRefill() {
+  const elapsed=Date.now()-(STATE.lastRefill||0);
+  const btn=document.getElementById('refill-btn'), timer=document.getElementById('refill-timer');
+  if(!btn) return;
+  if(elapsed>=REFILL_MS){
+    btn.disabled=false; btn.classList.add('ready');
+    timer.textContent='✓ 충전 가능!'; timer.className='bonus-timer ready-txt';
+  } else {
+    btn.disabled=true; btn.classList.remove('ready');
+    const r=REFILL_MS-elapsed, m=Math.floor(r/60000), s=Math.floor((r%60000)/1000);
+    timer.textContent=`다음 충전까지 ${m}분 ${s}초`; timer.className='bonus-timer';
+  }
+}
+function claimRefill(){
+  STATE.lastRefill=Date.now(); STATE.chips+=REFILL_AMT;
+  updateChipDisplay(); saveState(); checkRefill(); showToast(`⏰ +${REFILL_AMT} 칩 충전!`);
+}
+setInterval(checkRefill,1000);
+ 
+const ATTEND_AMT=50000;
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function checkAttendance(){
+  const btn=document.getElementById('attend-btn'),timer=document.getElementById('attend-timer');
+  if(!btn) return;
+  if(STATE.lastAttend===todayStr()){
+    btn.disabled=true; btn.classList.remove('ready');
+    timer.textContent='오늘 출석 완료 ✓'; timer.className='bonus-timer';
+  } else {
+    btn.disabled=false; btn.classList.add('ready');
+    timer.textContent='오늘 출석하지 않았어요!'; timer.className='bonus-timer ready-txt';
+  }
+}
+function claimAttendance(){
+  STATE.lastAttend=todayStr(); STATE.chips+=ATTEND_AMT;
+  updateChipDisplay(); saveState(); checkAttendance(); showToast(`📅 출석 보너스 +${ATTEND_AMT} 칩!`);
+}
+ 
+const EMERGENCY_AMT=30000;
+function checkEmergency(){
+  const btn=document.getElementById('emergency-btn'),timer=document.getElementById('emergency-timer');
+  if(!btn) return;
+  const used=STATE.lastEmergency===todayStr(), broke=STATE.chips<=500;
+  if(!used&&broke){
+    btn.disabled=false; btn.classList.add('emergency');
+    timer.textContent='⚠ 칩이 부족해요! 긴급 지원 가능'; timer.className='bonus-timer ready-txt';
+  } else if(used){
+    btn.disabled=true; btn.classList.remove('emergency');
+    timer.textContent='오늘 긴급 지원 사용 완료'; timer.className='bonus-timer';
+  } else {
+    btn.disabled=true; btn.classList.remove('emergency');
+    timer.textContent='칩이 500 이하일 때 활성화'; timer.className='bonus-timer';
+  }
+}
+function claimEmergency(){
+  if(STATE.chips>500||STATE.lastEmergency===todayStr()) return;
+  STATE.lastEmergency=todayStr(); STATE.chips+=EMERGENCY_AMT;
+  updateChipDisplay(); saveState(); checkEmergency(); showToast(`🆘 긴급 지원 +${EMERGENCY_AMT} 칩!`);
+}
+ 
+const MISSION_DEFS=[
+  {id:'m_slot3', desc:'슬롯 3회 돌리기',       goal:3, reward:1500,  counter:'cntSlot'},
+  {id:'m_bj2',   desc:'블랙잭 2판 플레이',      goal:2, reward:2000,  counter:'cntBJ'},
+  {id:'m_dice5', desc:'주사위 5회 굴리기',       goal:5, reward:1200,  counter:'cntDice'},
+  {id:'m_bac3',  desc:'바카라 3판 플레이',       goal:3, reward:2500,  counter:'cntBac'},
+  {id:'m_win3',  desc:'게임 3번 이기기',         goal:3, reward:3000,  counter:'cntWins'},
+  {id:'m_big',   desc:'한 판에 500 이상 배팅',   goal:1, reward:2500,  counter:'cntBig'},
+];
+function ensureMissionState(){
+  if(!STATE.missions)        STATE.missions={};
+  if(!STATE.missionDate)     STATE.missionDate='';
+  if(!STATE.missionCounters) STATE.missionCounters={};
+  if(STATE.missionDate!==todayStr()){
+    STATE.missionDate=todayStr(); STATE.missionCounters={}; STATE.missions={}; saveState();
+  }
+}
+function renderMissions(){
+  ensureMissionState();
+  const wrap=document.getElementById('mission-list'); if(!wrap) return;
+  wrap.innerHTML='';
+  MISSION_DEFS.forEach(def=>{
+    const cnt=STATE.missionCounters[def.counter]||0, done=cnt>=def.goal, claimed=STATE.missions[def.id]==='claimed';
+    const row=document.createElement('div'); row.className='mission-row';
+    const check=document.createElement('div'); check.className='mission-check'+(done?' done':''); check.textContent=done?'✓':'';
+    const desc=document.createElement('div'); desc.className='mission-desc'+(claimed?' done':''); desc.textContent=`${def.desc} (${Math.min(cnt,def.goal)}/${def.goal})`;
+    const right=document.createElement('div');
+    if(claimed){right.className='mission-reward';right.textContent='완료 ✓';}
+    else if(done){const b=document.createElement('button');b.className='mission-claim-btn';b.textContent=`+${def.reward} 받기`;b.onclick=()=>claimMission(def);right.appendChild(b);}
+    else{right.className='mission-reward';right.textContent=`+${def.reward}`;}
+    row.append(check,desc,right); wrap.appendChild(row);
+  });
+}
+function claimMission(def){
+  ensureMissionState();
+  if((STATE.missionCounters[def.counter]||0)<def.goal||STATE.missions[def.id]==='claimed') return;
+  STATE.missions[def.id]='claimed'; STATE.chips+=def.reward;
+  updateChipDisplay(); saveState(); renderMissions(); showToast(`📋 미션 완료! +${def.reward} 칩`);
+}
+function missionTick(counter,amount=1){
+  ensureMissionState();
+  STATE.missionCounters[counter]=(STATE.missionCounters[counter]||0)+amount;
+  saveState(); renderMissions(); checkEmergency();
+}
+function initBonuses(){
+  if(!STATE.lastRefill)    STATE.lastRefill=0;
+  if(!STATE.lastAttend)    STATE.lastAttend='';
+  if(!STATE.lastEmergency) STATE.lastEmergency='';
+  checkRefill(); checkAttendance(); checkEmergency(); renderMissions();
+}
+ 
+ 
+/* ═══════════════════════════════════════════════
+   히스토리 시스템
+═══════════════════════════════════════════════ */
+const HISTORY = {slot:[],dice:[],bac:[],plinko:[],wheel:[]};
+ 
+function addHistory(game, badge, detail, chipDelta) {
+  const arr = HISTORY[game];
+  arr.unshift({badge, detail, chipDelta});
+  if(arr.length>10) arr.pop();
+  renderHistory(game);
+}
+ 
+function renderHistory(game) {
+  const panel = document.getElementById('hist-'+game);
+  if(!panel) return;
+  // title 유지하고 row들만 교체
+  const title = panel.querySelector('.history-panel-title');
+  panel.innerHTML='';
+  panel.appendChild(title);
+  HISTORY[game].forEach(h=>{
+    const row=document.createElement('div'); row.className='hist-row';
+    const badge=document.createElement('span');
+    badge.className='hist-badge '+h.badge; badge.textContent=h.badge.toUpperCase();
+    const detail=document.createElement('span');
+    detail.className='hist-detail'; detail.innerHTML=h.detail;
+    const chips=document.createElement('span');
+    chips.className='hist-chips';
+    chips.textContent=(h.chipDelta>=0?'+':'')+Math.floor(h.chipDelta).toLocaleString();
+    chips.style.color=h.chipDelta>0?'#2ecc71':h.chipDelta<0?'#e74c3c':'var(--gold)';
+    row.append(badge,detail,chips); panel.appendChild(row);
+  });
+}
+
+initApp();
+</script>
+</body>
+</html>
